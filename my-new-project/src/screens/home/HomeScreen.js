@@ -1,20 +1,23 @@
 import React, { Component } from 'react';
 import { View, Text } from 'react-native';
-import { MeetupApi } from '../../../constants/api';
+import { connect } from 'react-redux';
 import { FontAwesome, MaterialIcons } from '@expo/vector-icons';
+
 import { LoadingScreen } from '../../commons';
 import { MyMeetupsList } from './components';
+
+import { fetchMyMeetups } from './actions';
 import Colors from '../../../constants/Colors';
 import styles from './styles/HomeScreen';
 
-const meetupApi = new MeetupApi();
+@connect(
+  state => ({
+    myMeetups: state.home.myMeetups
+  }),
+  { fetchMyMeetups }
+)
 
 class HomeScreen extends Component {
-
-  static defaultProps = {
-      meetupApi
-  }
-
   static navigationOptions = {
     headerStyle:  { backgroundColor: Colors.redColor },
     tabBarIcon: ({ tintColor }) => (
@@ -26,21 +29,21 @@ class HomeScreen extends Component {
     )
   }
 
-  state = {
-    loading: false,
-    meetups: [],
-  }
-
-
   async componentDidMount() {
-    this.setState({ loading: true });
-    const meetups = await this.props.meetupApi.fetchGroupMeetups();
-    this.setState({ loading: false, meetups });
+    this.props.fetchMyMeetups();
   }
 
   render() {
-    if (this.state.loading) {
-        return <LoadingScreen />;
+    const {
+      myMeetups: {
+        isFetched,
+        data,
+        error
+      }
+    } = this.props;
+
+    if (!isFetched) {
+      return <LoadingScreen />;
     }
 
     return (
